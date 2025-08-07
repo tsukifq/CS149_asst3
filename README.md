@@ -1,21 +1,17 @@
-# Assignment 3: A Simple CUDA Renderer
-
-**Due: Fri Nov 8, 11:59PM PST**
-
-**100 points total**
+# CS149 Assignment 3: Implementation
 
 ![My Image](handout/teaser.jpg?raw=true)
 
-## Overview
+## Original Overview
 
 In this assignment you will write a parallel renderer in CUDA that draws colored circles.
 While this renderer is very simple, parallelizing the renderer will require you to design and implement data structures
 that can be efficiently constructed and manipulated in parallel. This is a challenging
 assignment so you are advised to start early. **Seriously, you are advised to start early.** Good luck!
 
-## Environment Setup
+## My Environment Setup
 
-1. You will collect results (i.e. run performance tests) for this assignment on GPU-enabled VMs on Amazon Web Services (AWS). Please follow the instructions in [cloud_readme.md](cloud_readme.md) for setting up a machine to run the assignment.
+1. 2*A100, cuda 12.8.
 
 2. Download the Assignment starter code from the course Github using:
 
@@ -62,6 +58,27 @@ double endTime = CycleTimer::currentSeconds();
 ```
 
 Note that in your measurements that include the time to transfer to and from the CPU, a call to `cudaDeviceSynchronize()` **is not** necessary before the final timer (after your call to `cudaMemcopy()` that returns data to the CPU) because `cudaMemcpy()` will not return to the calling thread until after the copy is complete.
+
+**Result:**
+```
+./cudaSaxpy
+
+---------------------------------------------------------
+Found 2 CUDA devices
+Device 0: NVIDIA A100 80GB PCIe
+   SMs:        108
+   Global mem: 81153 MB
+   CUDA Cap:   8.0
+Device 1: NVIDIA A100 80GB PCIe
+   SMs:        108
+   Global mem: 81153 MB
+   CUDA Cap:   8.0
+---------------------------------------------------------
+Running 3 timing tests:
+Effective BW by CUDA saxpy: 182.218 ms          [6.133 GB/s]
+Effective BW by CUDA saxpy: 156.423 ms          [7.145 GB/s]
+Effective BW by CUDA saxpy: 148.116 ms          [7.545 GB/s]
+```
 
 **Question 1.** What performance do you observe compared to the sequential CPU-based implementation of
 SAXPY (recall your results from saxpy on Program 5 from Assignment 1)?
@@ -162,6 +179,94 @@ will do this when grading. We encourage you to come up with alternate inputs to 
 You can also use the `-n <size>` option to change the length of the input array.
 
 The argument `--thrust` will use the [Thrust Library's](http://thrust.github.io/) implementation of [exclusive scan](https://docs.nvidia.com/cuda/archive/12.2.2/thrust/index.html?highlight=group%20prefix%20sums#prefix-sums). **Up to two points of extra credit for anyone that can create an implementation is competitive with Thrust.**
+
+**result:**
+```
+./checker.py scan
+
+Test: scan
+
+--------------
+Running tests:
+--------------
+
+Element Count: 1000000
+Correctness passed!
+Student Time: 0.918
+Ref Time: 1.542
+
+Element Count: 10000000
+Correctness passed!
+Student Time: 1.446
+Ref Time: 2.495
+
+Element Count: 20000000
+Correctness passed!
+Student Time: 2.424
+Ref Time: 2.658
+
+Element Count: 40000000
+Correctness passed!
+Student Time: 4.449
+Ref Time: 6.973
+
+-------------------------
+Scan Score Table:
+-------------------------
+-------------------------------------------------------------------------
+| Element Count   | Ref Time        | Student Time    | Score           |
+-------------------------------------------------------------------------
+| 1000000         | 1.542           | 0.918           | 1.25            |
+| 10000000        | 2.495           | 1.446           | 1.25            |
+| 20000000        | 2.658           | 2.424           | 1.25            |
+| 40000000        | 6.973           | 4.449           | 1.25            |
+-------------------------------------------------------------------------
+|                                   | Total score:    | 5.0/5.0         |
+-------------------------------------------------------------------------
+```
+```
+./checker.py find_repeats
+
+Test: find_repeats
+
+--------------
+Running tests:
+--------------
+
+Element Count: 1000000
+Correctness passed!
+Student Time: 0.582
+Ref Time: 1.107
+
+Element Count: 10000000
+Correctness passed!
+Student Time: 1.657
+Ref Time: 1.879
+
+Element Count: 20000000
+Correctness passed!
+Student Time: 2.996
+Ref Time: 3.368
+
+Element Count: 40000000
+Correctness passed!
+Student Time: 5.23
+Ref Time: 6.188
+
+-------------------------
+Find_repeats Score Table:
+-------------------------
+-------------------------------------------------------------------------
+| Element Count   | Ref Time        | Student Time    | Score           |
+-------------------------------------------------------------------------
+| 1000000         | 1.107           | 0.582           | 1.25            |
+| 10000000        | 1.879           | 1.657           | 1.25            |
+| 20000000        | 3.368           | 2.996           | 1.25            |
+| 40000000        | 6.188           | 5.23            | 1.25            |
+-------------------------------------------------------------------------
+|                                   | Total score:    | 5.0/5.0         |
+-------------------------------------------------------------------------
+```
 
 ## Part 3: A Simple Circle Renderer (85 pts)
 
@@ -415,3 +520,4 @@ Please submit your work using Gradescope. If you are working with a partner plea
 2. **Please submit run `sh create_submission.sh` to generate a zip to submit to gradescope.** Note that this will run make clean in your code directories so you will have to run make again to run your code. If the script errors saying 'Permission denied', you should run `chmod +x create\_submission.sh` and then try rerunning the script.
 
 Our grading scripts will rerun the checker code allowing us to verify your score matches what you submitted in the `writeup.pdf`. We might also try to run your code on other datasets to further examine its correctness.
+
