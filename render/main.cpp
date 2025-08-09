@@ -68,9 +68,9 @@ int main(int argc, char** argv)
                 exit(1);
             }
             break;
-	case 'i':
-   	    interactiveMode = true;
-	    break;
+	    case 'i':
+   	        interactiveMode = true;
+	        break;
         case 'c':
             checkCorrectness = true;
             break;
@@ -81,12 +81,12 @@ int main(int argc, char** argv)
             if (std::string(optarg).compare("cuda") == 0) {
                 useRefRenderer = false;
             } else if (std::string(optarg).compare("cpuref") == 0) {
-	      useRefRenderer = true;
-	    } else {
-	      fprintf(stderr, "ERROR: Unknown renderer type: %s\n", optarg);
-	      usage(argv[0]);
-	      return 1;
-	    }
+                useRefRenderer = true;
+            } else {
+                fprintf(stderr, "ERROR: Unknown renderer type: %s\n", optarg);
+                usage(argv[0]);
+                return 1;
+            }
             break;
         case 's':
             imageSize = atoi(optarg);

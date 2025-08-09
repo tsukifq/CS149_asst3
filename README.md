@@ -11,7 +11,8 @@ assignment so you are advised to start early. **Seriously, you are advised to st
 
 ## My Environment Setup
 
-1. 2*A100, cuda 12.8.
+1. 2*NVIDIA A100 PCIE, cuda 12.8.
+`sudo apt-get update && sudo apt-get install freeglut3-dev -y`
 
 2. Download the Assignment starter code from the course Github using:
 

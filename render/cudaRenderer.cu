@@ -427,6 +427,34 @@ __global__ void kernelRenderCircles() {
     }
 }
 
+// kernelRenderPixels -- (CUDA device code)
+//// Each thread renders a point.
+__global__ void kernelRenderPixels() {
+    int pixelX = blockIdx.x * blockDim.x + threadIdx.x;
+    int pixelY = blockIdx.y * blockDim.y + threadIdx.y;
+
+    short imageWidth = cuConstRendererParams.imageWidth;
+    short imageHeight = cuConstRendererParams.imageHeight;
+
+    if (pixelX >= imageWidth || pixelY >= imageHeight)
+        return;
+
+    float invWidth = 1.f / imageWidth;
+    float invHeight = 1.f / imageHeight;
+
+    float2 pixelCenterNorm = make_float2(invWidth * (pixelX + 0.5f), invHeight * (pixelY + 0.5f));
+    float4 *imgPtr = (float4*)(&cuConstRendererParams.imageData[4 * (pixelY * imageWidth + pixelX)]);
+
+    int numCircles = cuConstRendererParams.numCircles;
+    for(int i = 0;i < numCircles;i++) {
+        float3 p = *(float3*)(&cuConstRendererParams.position[3 * i]);
+        shadePixel(i, pixelCenterNorm, p, imgPtr);
+    }
+
+}
+
+
+
 ////////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -633,13 +661,27 @@ CudaRenderer::advanceAnimation() {
     cudaDeviceSynchronize();
 }
 
-void
-CudaRenderer::render() {
+// originalincorrect implementation
+// void
+// CudaRenderer::render() {
 
-    // 256 threads per block is a healthy number
-    dim3 blockDim(256, 1);
-    dim3 gridDim((numCircles + blockDim.x - 1) / blockDim.x);
+//     // 256 threads per block is a healthy number
+//     dim3 blockDim(256, 1);
+//     dim3 gridDim((numCircles + blockDim.x - 1) / blockDim.x);
 
-    kernelRenderCircles<<<gridDim, blockDim>>>();
+//     kernelRenderCircles<<<gridDim, blockDim>>>();
+//     cudaDeviceSynchronize();
+// }
+
+void CudaRenderer::render() {
+
+    // threads per point
+    dim3 blockDim(16, 16);
+    dim3 gridDim(
+        (image->width + blockDim.x - 1) / blockDim.x,
+        (image->height + blockDim.y - 1) / blockDim.y
+    );
+    // render the circles
+    kernelRenderPixels<<<gridDim, blockDim>>>();
     cudaDeviceSynchronize();
 }
